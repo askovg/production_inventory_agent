@@ -1,0 +1,28 @@
+We found our database on Kaggle: https://www.kaggle.com/datasets/harshsingh2209/supply-chain-analysis
+
+We improve it by adding some realistics variables (generate by AI):
+1. Time and Identity Variables
+inventory_id: A unique numerical identifier for each specific record in the time series.
+
+date: The specific calendar date for each entry, spanning a 90-day historical period.
+
+2. Dynamic Inventory Flow Variables
+daily_sold_units: The quantity of products actually sold on that specific day, simulated using a Poisson distribution.
+
+daily_production_units: The quantity of new stock added to the inventory on a given day, triggered by automated replenishment logic.
+
+current_stock_level: The real-time inventory balance at the end of the day, calculated as: Previous Stock + Production - Sales.
+
+3. Environmental & Contextual Variables
+temp_celsius: The recorded daily temperature (in Celsius) associated with the product's location.
+
+weather_condition: A categorical variable describing the atmospheric conditions (e.g., Sunny, Rainy, Cloudy, Stormy).
+
+promotion_active: A binary flag (0 or 1) indicating whether a marketing promotion or discount was active on that date.
+
+4. Performance & Financial Indicators (KPIs)
+daily_holding_cost: The calculated financial cost of storing the remaining units for that day, based on the product's unit price.
+
+is_stockout: A binary indicator that switches to 1 whenever the current_stock_level reaches zero.
+
+Also we used a python code to retrieve the final database.
