@@ -4,10 +4,21 @@ Outils d'analyse et de prévision avec Hugging Face
 import pandas as pd
 import numpy as np
 from datetime import timedelta, datetime
-from statsmodels.tsa.arima.model import ARIMA
-from prophet import Prophet
 import warnings
 warnings.filterwarnings('ignore')
+
+# Imports optionnels
+try:
+    from statsmodels.tsa.arima.model import ARIMA
+    ARIMA_AVAILABLE = True
+except ImportError:
+    ARIMA_AVAILABLE = False
+
+try:
+    from prophet import Prophet
+    PROPHET_AVAILABLE = True
+except ImportError:
+    PROPHET_AVAILABLE = False
 
 class AnalysisEngine:
     """Moteur d'analyse avec prévisions et détection d'anomalies."""
@@ -50,50 +61,83 @@ class AnalysisEngine:
     
     def _forecast_arima(self, df, horizon):
         """Prévision avec modèle ARIMA."""
+        if not ARIMA_AVAILABLE:
+            print("❌ statsmodels non installé. Installer avec: pip install statsmodels")
+            return None
+        
         try:
-            sales = df.set_index('date')['daily_sold_units'].fillna(0)
-            model = ARIMA(sales, order=(5, 1, 2))
-            fitted = model.fit()
-            forecast = fitted.forecast(steps=horizon)
-            forecast_df = fitted.get_forecast(steps=horizon)
-            conf_int = forecast_df.conf_int()
+            # Préparer les données avec fréquence explicite
+            sales_df = df[['date', 'daily_sold_units']].copy()
+            sales_df = sales_df.set_index('date')
+            sales_df = sales_df.fillna(0)
             
+            # Définir la fréquence explicitement (quotidienne)
+            sales_df.index = pd.DatetimeIndex(sales_df.index)
+            sales_df = sales_df.asfreq('D', fill_value=0)
+            
+            sales = sales_df['daily_sold_units']
+            
+            # Modèle ARIMA avec paramètres plus stables
+            import warnings
+            warnings.filterwarnings('ignore')
+            
+            model = ARIMA(sales, order=(2, 1, 2))  # Paramètres plus simples
+            fitted = model.fit(method='statespace')
+            
+            # Prévisions
+            forecast = fitted.forecast(steps=horizon)
+            forecast_obj = fitted.get_forecast(steps=horizon)
+            conf_int = forecast_obj.conf_int()
+            
+            # Créer les dates futures
             last_date = df['date'].max()
             future_dates = pd.date_range(start=last_date + timedelta(days=1), 
                                         periods=horizon, freq='D')
             
             results = pd.DataFrame({
                 'date': future_dates,
-                'predicted_demand': forecast.values,
-                'lower_bound': conf_int.iloc[:, 0].values,
-                'upper_bound': conf_int.iloc[:, 1].values,
+                'predicted_demand': np.maximum(0, forecast.values),
+                'lower_bound': np.maximum(0, conf_int.iloc[:, 0].values),
+                'upper_bound': np.maximum(0, conf_int.iloc[:, 1].values),
                 'method': 'ARIMA'
             })
             
-            results['predicted_demand'] = results['predicted_demand'].clip(lower=0)
+            print(f"✅ Prévision ARIMA: moyenne {results['predicted_demand'].mean():.1f} unités/jour")
             return results
             
         except Exception as e:
             print(f"❌ Erreur ARIMA: {e}")
-            return None
+            print("   Passage à la méthode simple...")
+            return self._forecast_simple(df, horizon)
     
     def _forecast_prophet(self, df, horizon):
         """Prévision avec Prophet."""
+        if not PROPHET_AVAILABLE:
+            print("❌ Prophet non installé. Installer avec: pip install prophet")
+            return None
+        
         try:
             prophet_df = df[['date', 'daily_sold_units']].copy()
             prophet_df.columns = ['ds', 'y']
             prophet_df = prophet_df.fillna(0)
             
+            # Configuration Prophet plus robuste
             model = Prophet(
                 daily_seasonality=True,
                 weekly_seasonality=True,
                 yearly_seasonality=False,
-                interval_width=0.95
+                interval_width=0.95,
+                changepoint_prior_scale=0.05,
+                seasonality_prior_scale=10.0
             )
             
             if 'temp_celsius' in df.columns and df['temp_celsius'].notna().any():
                 prophet_df['temp'] = df['temp_celsius'].fillna(df['temp_celsius'].mean())
                 model.add_regressor('temp')
+            
+            # Supprimer les logs de Prophet
+            import logging
+            logging.getLogger('prophet').setLevel(logging.ERROR)
             
             model.fit(prophet_df)
             future = model.make_future_dataframe(periods=horizon, freq='D')
@@ -114,9 +158,17 @@ class AnalysisEngine:
             
             return results
             
+        except AttributeError as e:
+            if 'stan_backend' in str(e):
+                print("⚠️ Erreur Prophet (problème de version). Passage à ARIMA...")
+                return self._forecast_arima(df, horizon)
+            else:
+                print(f"❌ Erreur Prophet: {e}")
+                return self._forecast_arima(df, horizon)
         except Exception as e:
             print(f"❌ Erreur Prophet: {e}")
-            return None
+            print("   Tentative avec ARIMA...")
+            return self._forecast_arima(df, horizon)
     
     def _forecast_hf_enhanced(self, df, horizon, product):
         """Prévision améliorée avec analyse HF."""
