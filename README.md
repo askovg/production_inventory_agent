@@ -22,7 +22,7 @@ production_inventory_agent/
 ├── config/
 ├── database_creation/
 ├── scripts/
-│   ├── server.py
+│   ├── LLM.py
 │   └── setup_database.py
 ├── src/
 │   └── agent_tools/
@@ -47,5 +47,43 @@ The database can be initialized using:
 ```bash
 python scripts/setup_database.py
 ```
+---
+
+## More details:
+
+### Natural Language Interface
+- Chat with the agent
+- Intelligent query understanding and intent detection
+
+### Analytics & Insights
+- Stock Analysis: Real-time inventory levels across all SKUs
+- Sales Metrics: Category-level and SKU-level performance tracking
+- Demand Classification: Automatic categorization (HIGH/MODERATE/LOW/VERY LOW)
+- Revenue Tracking: Accurate revenue calculations without duplication
+
+### Demand Forecasting
+- Multiple forecasting methods (ARIMA, Prophet)
+- Configurable forecast horizons (7, 14, 30+ days)
+- Confidence intervals and trend detection
+
+ ### Anomaly Detection
+- Automated stockout detection
+- Overstock identification
+- Critical stock level alerts
+- Z-score based statistical analysis
+- HF-powered anomaly classification
+
+### Visualizations
+- Stock evolution charts
+- Weekly demand aggregation
+- Forecast vs. actual comparisons
+- Anomaly highlighting
+- Product comparisons
+
+### Hugging Face
+- Sentiment analysis for market trends
+- Zero-shot classification for anomalies
+- AI-powered text generation for recommendations
+- Enhanced forecasting with sentiment adjustments
 
 
