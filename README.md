@@ -97,12 +97,10 @@ python scripts/setup_database.py
 
 ### Sales Analysis
 - "What are the sales for haircare?"
-- "How much did cosmetics sell this month?"
 - "Sales performance for skincare last week"
 
 ### Forecasting
 - "Forecast demand for skincare"
-- "What will sales be in 2 weeks for haircare?"
 - "Predict next month's demand for cosmetics"
 
 ### Anomaly Detection
@@ -112,18 +110,15 @@ python scripts/setup_database.py
 
 ### Restocking
 - "Should I order skincare?"
-- "Which products need restocking?"
-- "Restock recommendations"
 
 ### Visualizations
 - "Show me the haircare chart"
-- "Display stock evolution for cosmetics"
-- "Graph sales trends"
 
 ### Global Status
 - "What's the status?"
 - "Give me a summary"
 - "Overall supply chain report"
+
 
 
 
