@@ -21,24 +21,27 @@ This project is developed as part of the course **Advanced Programming and Data 
 ## Project Structure
 ```text
 production_inventory_agent/
+├── README.md
 ├── config/
+│   └── config.yaml
 ├── data/
+│   ├── data.csv
 │   ├── processed/
 │   └── raw/
 ├── database_creation/
 │   ├── enriched_supply_chain_data.csv
+│   ├── explanation/
 │   └── improvmentbd.py
 ├── scripts/
 │   ├── LLM.py
 │   └── setup_database.py
-├── src/
-│   └── agent_tools/
-│       ├── __init__.py
-│       ├── database.py
-│       ├── analysis.py
-│       ├── visualization.py
-│       └── reports.py
-└── README.md
+└── src/
+    └── agent_tools/
+        ├── __init__.py
+        ├── analysis.py
+        ├── database.py
+        ├── reports.py
+        └── visualization.py
 ```
 
 ---
@@ -157,3 +160,4 @@ python scripts/LLM.py
 - "What's the status?"
 - "Give me a summary"
 - "Overall supply chain report"
+
